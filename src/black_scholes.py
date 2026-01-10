@@ -1,5 +1,5 @@
 import numpy as np
-from scipy import norm
+from scipy.stats import norm
 
 """
 Parameters:
@@ -10,7 +10,7 @@ Parameters:
     sigma: volatility of the underlying asset
 """
 
-def d1(S, K, T, r, sigma):
+def check_inputs(S, K, T, r, sigma):
     if S <= 0:
         raise ValueError("Asset price must be positive.")
     if K <= 0:
@@ -19,19 +19,155 @@ def d1(S, K, T, r, sigma):
         raise ValueError("Time must be positive.")
     if sigma <= 0:
         raise ValueError("Volatility must be positive")
-    
+
+
+def d1(S, K, T, r, sigma):
+    #edge cases
+    if T <= 1e-10:
+        if S > K:
+            return np.inf
+        elif S < K:
+            return -np.inf
+        else:
+            return 0
+        
+    if abs(sigma * np.sqrt(T)) <= 1e-10:
+        if S > K:
+            return np.inf
+        else:
+            return -np.inf
+
     return (np.log(S/K) + (r + .5 * pow(sigma, 2)) * T) / (sigma * np.sqrt(T))
     
 
-
 def d2(S, K, T, r, sigma):
-    pass
+    return d1(S, K, T, r, sigma) - sigma * np.sqrt(T)
+
 
 def call_price(S, K, T, r, sigma):
-    pass
+    check_inputs(S, K, T, r, sigma)
 
-def pull_price(S, K, T, r, sigma):
-    pass
+    if T <= 1e-10:
+        return max(0, S - K)
+    
+    d1_val = d1(S, K, T, r, sigma)
+    d2_val = d2(S, K, T, r, sigma)
+    return S * norm.cdf(d1_val) - K * np.exp(-r * T) * norm.cdf(d2_val)
+
+
+def put_price(S, K, T, r, sigma):
+    check_inputs(S, K, T, r, sigma)
+
+    if T <= 1e-10:
+        return max(0, K - S)
+    
+    d1_val = d1(S, K, T, r, sigma)
+    d2_val = d2(S, K, T, r, sigma)
+    return K * np.exp(-r * T) * norm.cdf(-d2_val) - S * norm.cdf(-d1_val)
+
+
+def call_delta(S, K, T, r, sigma):
+    """
+    Measures how much the call option's price changes when the underlying asset price moves. Higher deltas indicate a stronger link between the stock price and the call's value. Ranges between 0 and 1.
+    """
+    check_inputs(S, K, T, r, sigma)
+    if T <= 1e-10:
+        if S > K:
+            return 1.0
+        else:
+            return 0.0
+    d1_val = d1(S, K, T, r, sigma)
+    return norm.cdf(d1_val)
+
+
+def put_delta(S, K, T, r, sigma):
+    """
+    Measures how much the call option's price changes when the underlying asset price moves. Higher deltas indicate a stronger link between the stock price and the call's value. Ranges between -1 and 0.
+    """
+    check_inputs(S, K, T, r, sigma)
+    if T <= 1e-10:
+        if S < K:
+            return -1.0
+        else:
+            return 0.0
+    d1_val = d1(S, K, T, r, sigma)
+    return norm.cdf(d1_val) - 1
+
+
+def call_theta(S, K, T, r, sigma):
+    """
+    Measures how much value the call option loses as time passes. Call theta is usually negative because time decay reduces the option's value.
+    """
+    check_inputs(S, K, T, r, sigma)
+    if T <= 1e-10:
+        return 0.0
+    
+    d1_val = d1(S, K, T, r, sigma)
+    d2_val = d2(S, K, T, r, sigma)
+    return -(S * norm.pdf(d1_val) * sigma) / (2 * np.sqrt(T)) - r * K * np.exp(-r * T) * norm.cdf(d2_val)
+
+
+def put_theta(S, K, T, r, sigma):
+    """
+    Measures how much value the call option loses as time passes. Call theta is usually negative because time decay reduces the option's value.
+    """
+    check_inputs(S, K, T, r, sigma)
+    if T <= 1e-10:
+        return 0.0
+    
+    d1_val = d1(S, K, T, r, sigma)
+    d2_val = d2(S, K, T, r, sigma)
+    return -(S * norm.pdf(d1_val) * sigma) / (2 * np.sqrt(T)) + r * K * np.exp(-r * T) * norm.cdf(-d2_val)
+
+
+def call_rho(S, K, T, r, sigma):
+    """
+    Measures how sensitive the call price is to changes in interest rates. Call rho is positive because higher rates increase the relative value of owning the underlying asset instead of paying the strike price later.
+    """
+    check_inputs(S, K, T, r, sigma)
+    if T <= 1e-10:
+        return 0.0
+    
+    d2_val = d2(S, K, T, r, sigma)
+    return K * T * np.exp(-r * T) * norm.cdf(d2_val)
+
+
+def put_rho(S, K, T, r, sigma):
+    """
+    Measures how sensitive the call price is to changes in interest rates. Call rho is positive because higher rates increase the relative value of owning the underlying asset instead of paying the strike price later.
+    """
+    check_inputs(S, K, T, r, sigma)
+    if T <= 1e-10:
+        return 0.0
+    
+    d2_val = d2(S, K, T, r, sigma)
+    return -K * T * np.exp(-r * T) * norm.cdf(-d2_val)
+
+
+def gamma(S, K, T, r, sigma):
+    """
+    Measures how quickly delta changes as the underlying price moves. High gamma means the option's sensitivity to price changes shifts rapidly, especially near the money.
+    """
+    check_inputs(S, K, T, r, sigma)
+    if T <= 1e-10:
+        return 0.0
+    
+    d1_val = d1(S, K, T, r, sigma)
+    return norm.pdf(d1_val) / (S * sigma * np.sqrt(T))
+
+
+def vega(S, K, T, r, sigma):
+    """
+    Measures how much the option's price changes when volatility changes. Higher vega means the option is more affected by uncertainty in future price movement.
+    """
+    check_inputs(S, K, T, r, sigma)
+    if T <= 1e-10:
+        return 0.0
+    
+    d1_val = d1(S, K, T, r, sigma)
+    return S * norm.pdf(d1_val) * np.sqrt(T)
+
+
 
 
 
