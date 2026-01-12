@@ -51,7 +51,7 @@ black-scholes-project/
 │   └── black_scholes.py    # Core Black-Scholes implementation
 ├── app.py                  # Streamlit web application
 ├── requirements.txt        # Python dependencies
-└── README.md              # Project documentation
+└── README.md               # Project documentation
 ```
 
 ## Installation
@@ -72,7 +72,7 @@ cd black-scholes-project
 ```bash
 # On macOS/Linux:
 python -m venv venv
-source venv/bin/activate
+source .venv/bin/activate
 
 # On Windows:
 python -m venv venv
@@ -131,7 +131,7 @@ Potential features for future development:
 
 ## Contributing
 
-Contributions are welcome! Feel free to:
+Contributions are welcome. Feel free to:
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/new-feature`)
 3. Commit your changes (`git commit -m 'Add new feature'`)
