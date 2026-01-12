@@ -2,6 +2,9 @@
 
 A Python implementation of the Black-Scholes option pricing model with an interactive Streamlit dashboard for calculating option prices and analyzing Greeks in real-time.
 
+## Live Demo
+Try the app: https://black-scholes-calculator-project.streamlit.app/
+
 ## Overview
 
 This project implements the classic Black-Scholes formula for European option pricing with an interactive web interface. Built to explore quantitative finance concepts and option sensitivity analysis.
