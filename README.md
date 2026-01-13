@@ -106,10 +106,16 @@ The application will open automatically in your browser at `http://localhost:850
 
 ## Technical Implementation
 
-The Black-Scholes formula for a European call option:
+The Black-Scholes formulas for European options:
 
+**Call Option:**
 ```
 C = S·N(d₁) - K·e^(-rT)·N(d₂)
+```
+
+**Put Option:**
+```
+P = K·e^(-rT)·N(-d₂) - S·N(-d₁)
 ```
 
 Where:
